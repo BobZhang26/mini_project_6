@@ -1,17 +1,58 @@
 """
 Test goes here
+
 """
-from main import main_res
+
+import subprocess
 
 
-def test_func():
-    return main_res()
+def test_extract():
+    """tests extract()"""
+    result = subprocess.run(
+        ["python", "main.py", "extract"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.returncode == 0
+    assert "Extracting data..." in result.stdout
+
+
+def test_transform_load():
+    """tests transfrom_load"""
+    result = subprocess.run(
+        ["python", "main.py", "transform_load"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.returncode == 0
+    assert "Transforming data..." in result.stdout
+
+
+def test_general_query():
+    """tests general_query"""
+    result = subprocess.run(
+        [
+            "python",
+            "main.py",
+            "general_query",
+            """SELECT t1.month, t1.SUM(births)
+            FROM default.births2000DB t1 JOIN default.births1994DB t2
+            ON t1.year=t2.year
+            GROUP BY t1.month
+            ORDER BY t1.month
+            LIMIT 10
+            """,
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.returncode == 0
 
 
 if __name__ == "__main__":
-    assert test_func()["extract_to"] == "./data/rainfall.csv"
-    assert test_func()["transform_db"] == "rainfall.db"
-    assert test_func()["create"] == "Create Success"
-    assert test_func()["read"] == "Read Success"
-    assert test_func()["update"] == "Update Success"
-    assert test_func()["delete"] == "Delete Success"
+    test_extract()
+    test_transform_load()
+    test_general_query()
